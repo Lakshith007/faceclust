@@ -1,0 +1,52 @@
+# Install DeepFace
+!pip install deepface
+
+import tensorflow as tf
+print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
+
+# Import libraries
+from deepface import DeepFace
+import os
+
+# Mount Google Drive
+
+
+from deepface.modules import recognition
+
+
+# Mount Google Drive (optional, for file storage)
+from google.colab import drive
+drive.mount('/content/drive')
+
+reference_img_paths = [
+    "/content/drive/MyDrive/reff.jpg",
+    # Add more paths as needed
+]
+
+# Step 2: Load the gallery (database) representations
+gallery_dir = "/content/drive/MyDrive/reception"
+gallery_images = [os.path.join(gallery_dir, img) for img in os.listdir(gallery_dir)
+                  if img.lower().endswith(('jpg', 'jpeg', 'png'))]
+gallery_representations = recognition.__find_bulk_embeddings(
+    gallery_images,
+    model_name="VGG-Face",
+    detector_backend="opencv"
+)
+
+
+source_objs = []
+for img_path in reference_img_paths:
+    faces = DeepFace.extract_faces(img_path)
+    for face_obj in faces:
+        source_objs.append(face_obj)
+
+# Step 4: Run find_batched
+results = recognition.find_batched(
+    representations=gallery_representations,
+    source_objs=source_objs,
+    model_name="VGG-Face"
+)
+
+# Print results
+print(results)
+
